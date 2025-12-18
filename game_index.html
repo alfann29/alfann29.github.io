@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alfan Games</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            color: white;
+        }
+        h1 {
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            font-size: 36px;
+        }
+        .game-container {
+            display: flex;
+            gap: 20px;
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(8, 40px);
+            grid-template-rows: repeat(8, 40px);
+            gap: 2px;
+            background-color: #333;
+            padding: 10px;
+            border-radius: 10px;
+        }
+        .cell {
+            width: 40px;
+            height: 40px;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            border-radius: 5px;
+        }
+        .cell.filled {
+            background-color: #ff6b6b; /* Default red, but will be overridden by block colors */
+            color: white;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.3);
+        }
+        .blocks {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .block {
+            display: grid;
+            grid-template-columns: repeat(3, 30px);
+            grid-template-rows: repeat(3, 30px);
+            gap: 1px;
+            background-color: #ddd;
+            padding: 5px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            border-radius: 5px;
+        }
+        .block.selected {
+            border-color: #ffd93d;
+            box-shadow: 0 0 10px #ffd93d;
+        }
+        .block-cell {
+            width: 30px;
+            height: 30px;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+        .block-cell.filled {
+            /* Colors will be set dynamically */
+        }
+        .score {
+            font-size: 24px;
+            margin-top: 20px;
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>Alfan Games</h1>
+    <div class="game-container">
+        <div class="grid" id="grid"></div>
+        <div class="blocks" id="blocks"></div>
+    </div>
+    <div class="score">Score: <span id="score">0</span></div>
+    <button onclick="resetGame()">Reset Game</button>
+
+    <script>
+        const gridSize = 8;
+        const grid = document.getElementById('grid');
+        const blocksContainer = document.getElementById('blocks');
+        const scoreElement = document.getElementById('score');
+        let score = 0;
+        let selectedBlock = null;
+        let selectedBlockIndex = null;
+        let gridState = Array(gridSize).fill().map(() => Array(gridSize).fill(null)); // Now stores color or null
+
+        // Define block shapes with colors
+        const blockShapes = [
+            {
+                shape: [
+                    [1, 1, 1],
+                    [0, 0, 0],
+                    [0, 0, 0]
+                ],
+                color: '#ff6b6b' // Red
+            },
+            {
+                shape: [
+                    [1, 0, 0],
+                    [1, 0, 0],
+                    [1, 0, 0]
+                ],
+                color: '#4ecdc4' // Teal
+            },
+            {
+                shape: [
+                    [1, 1, 0],
+                    [1, 0, 0],
+                    [0, 0, 0]
+                ],
+                color: '#45b7d1' // Blue
+            },
+            {
+                shape: [
+                    [1, 1, 0],
+                    [0, 1, 0],
+                    [0, 0, 0]
+                ],
+                color: '#f9ca24' // Yellow
+            },
+            {
+                shape: [
+                    [0, 1, 0],
+                    [1, 1, 1],
+                    [0, 0, 0]
+                ],
+                color: '#6c5ce7' // Purple
+            }
+        ];
+
+        // Initialize grid
+        function initGrid() {
+            grid.innerHTML = '';
+            for (let i = 0; i < gridSize; i++) {
+                for (let j = 0; j < gridSize; j++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add('cell');
+                    cell.dataset.row = i;
+                    cell.dataset.col = j;
+                    cell.addEventListener('click', () => placeBlock(i, j));
+                    grid.appendChild(cell);
+                }
+            }
+        }
+
+        // Initialize blocks
+        function initBlocks() {
+            blocksContainer.innerHTML = '';
+            blockShapes.forEach((block, index) => {
+                const blockDiv = document.createElement('div');
+                blockDiv.classList.add('block');
+                blockDiv.dataset.index = index;
+                blockDiv.addEventListener('click', () => selectBlock(index));
+                for (let i = 0; i < 3; i++) {
+                    for (let j = 0; j < 3; j++) {
+                        const blockCell = document.createElement('div');
+                        blockCell.classList.add('block-cell');
+                        if (block.shape[i][j]) {
+                            blockCell.classList.add('filled');
+                            blockCell.style.backgroundColor = block.color;
+                        }
+                        blockDiv.appendChild(blockCell);
+                    }
+                }
+                blocksContainer.appendChild(blockDiv);
+            });
+        }
+
+        // Select a block
+        function selectBlock(index) {
+            document.querySelectorAll('.block').forEach(block => block.classList.remove('selected'));
+            document.querySelector(`.block[data-index="${index}"]`).classList.add('selected');
+            selectedBlock = blockShapes[index].shape;
+            selectedBlockIndex = index;
+        }
+
+        // Place block on grid
+        function placeBlock(row, col) {
+            if (selectedBlock === null) return;
+            const blockColor = blockShapes[selectedBlockIndex].color;
+            // Check if block can be placed
+            let canPlace = true;
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    if (selectedBlock[i][j] && (row + i >= gridSize || col + j >= gridSize || gridState[row + i][col + j] !== null)) {
+                        canPlace = false;
+                    }
+                }
+            }
+            if (!canPlace) return;
+            // Place the block
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    if (selectedBlock[i][j]) {
+                        gridState[row + i][col + j] = blockColor;
+                    }
+                }
+            }
+            updateGrid();
+            checkLines();
+            selectedBlock = null;
+            selectedBlockIndex = null;
+            document.querySelectorAll('.block').forEach(block => block.classList.remove('selected'));
+        }
+
+        // Update grid display
+        function updateGrid() {
+            const cells = document.querySelectorAll('.cell');
+            cells.forEach(cell => {
+                const row = parseInt(cell.dataset.row);
+                const col = parseInt(cell.dataset.col);
+                if (gridState[row][col]) {
+                    cell.classList.add('filled');
+                    cell.style.backgroundColor = gridState[row][col];
+                } else {
+                    cell.classList.remove('filled');
+                    cell.style.backgroundColor = '#fff';
+                }
+            });
+        }
+
+        // Check for full rows and columns
+        function checkLines() {
+            let cleared = false;
+            // Check rows
+            for (let i = 0; i < gridSize; i++) {
+                if (gridState[i].every(cell => cell !== null)) {
+                    gridState[i].fill(null);
+                    score += 10;
+                    cleared = true;
+                }
+            }
+            // Check columns
+            for (let j = 0; j < gridSize; j++) {
+                if (gridState.every(row => row[j] !== null)) {
+                    for (let i = 0; i < gridSize; i++) {
+                        gridState[i][j] = null;
+                    }
+                    score += 10;
+                    cleared = true;
+                }
+            }
+            if (cleared) {
+                updateGrid();
+                scoreElement.textContent = score;
+            }
+        }
+
+        // Reset game
+        function resetGame() {
+            gridState = Array(gridSize).fill().map(() => Array(gridSize).fill(null));
+            score = 0;
+            scoreElement.textContent = score;
+            updateGrid();
+            selectedBlock = null;
+            selectedBlockIndex = null;
+            document.querySelectorAll('.block').forEach(block => block.classList.remove('selected'));
+        }
+
+        // Initialize
+        initGrid();
+        initBlocks();
+    </script>
+</body>
+</html>
