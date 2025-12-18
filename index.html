@@ -1,2 +1,147 @@
-apakah kamu lapar
-ayo kita pergi makan kalo lapar
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Absensi Kelas</title>
+  <style>
+    body { font-family: Arial, sans-serif; background:#eef2f7; padding:20px; }
+    h1 { text-align:center; color:#2c3e50; }
+    .info { margin-bottom:15px; background:#ffffff; padding:15px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.1); }
+    label { display:inline-block; width:100px; font-weight:bold; color:#34495e; }
+    input[type=text], input[type=date] {
+      padding:6px; width:220px; margin-bottom:8px;
+      border:1px solid #ccc; border-radius:4px;
+    }
+    button {
+      padding:8px 14px; margin-top:10px; margin-right:5px;
+      border:none; border-radius:5px; cursor:pointer;
+      background:#3498db; color:white;
+    }
+    button:hover { background:#2980b9; }
+    .btn-simpan { background:#2ecc71; }
+    .btn-simpan:hover { background:#27ae60; }
+    .btn-hapus { background:#e74c3c; }
+    .btn-hapus:hover { background:#c0392b; }
+
+    table {
+      width:100%; border-collapse: collapse; background:#fff; margin-top:15px;
+      border-radius:8px; overflow:hidden;
+    }
+    th, td { border:1px solid #ddd; padding:8px; text-align:center; }
+    th { background:#3498db; color:white; }
+    tr:nth-child(even) { background:#f9f9f9; }
+  </style>
+</head>
+<body>
+
+<h1>Absensi Kelas</h1>
+
+<div class="info">
+  <div>
+    <label>Kelas</label>
+    <input type="text" id="kelas">
+  </div>
+  <div>
+    <label>Tanggal</label>
+    <input type="date" id="tanggal">
+  </div>
+</div>
+
+<label>Nama Siswa</label>
+<input type="text" id="nama">
+<button onclick="tambahSiswa()">Tambah</button>
+<button class="btn-simpan" onclick="simpanAbsensi()">Simpan Absensi</button>
+<button class="btn-hapus" onclick="hapusData()">Hapus Data</button>
+
+<table>
+  <thead>
+    <tr>
+      <th>No</th>
+      <th>Nama</th>
+      <th>Hadir</th>
+      <th>Izin</th>
+      <th>Alpha</th>
+    </tr>
+  </thead>
+  <tbody id="tabelAbsensi"></tbody>
+</table>
+
+<script>
+let no = 1;
+
+// Load data saat halaman dibuka
+window.onload = function() {
+  let data = JSON.parse(localStorage.getItem('absensi'));
+  if (data) {
+    document.getElementById('kelas').value = data.kelas;
+    document.getElementById('tanggal').value = data.tanggal;
+    data.siswa.forEach(item => tambahSiswa(item.nama, item.status));
+  }
+};
+
+function tambahSiswa(namaInput, status) {
+  let nama = namaInput || document.getElementById('nama').value;
+  let kelas = document.getElementById('kelas').value;
+  let tanggal = document.getElementById('tanggal').value;
+
+  if (kelas === '' || tanggal === '') {
+    alert('Kelas dan tanggal harus diisi');
+    return;
+  }
+
+  if (nama === '') {
+    alert('Nama siswa tidak boleh kosong');
+    return;
+  }
+
+  let tabel = document.getElementById('tabelAbsensi');
+  let row = tabel.insertRow();
+  let absenId = 'absen' + no;
+
+  row.insertCell(0).innerHTML = no;
+  row.insertCell(1).innerHTML = nama;
+  row.insertCell(2).innerHTML = '<input type="radio" name="'+absenId+'" value="Hadir">';
+  row.insertCell(3).innerHTML = '<input type="radio" name="'+absenId+'" value="Izin">';
+  row.insertCell(4).innerHTML = '<input type="radio" name="'+absenId+'" value="Alpha">';
+
+  if (status) {
+    document.querySelector('input[name="'+absenId+'"][value="'+status+'"]').checked = true;
+  }
+
+  no++;
+  document.getElementById('nama').value = '';
+}
+
+function simpanAbsensi() {
+  let siswa = [];
+  let rows = document.getElementById('tabelAbsensi').rows;
+
+  for (let i = 0; i < rows.length; i++) {
+    let nama = rows[i].cells[1].innerText;
+    let radios = rows[i].querySelectorAll('input[type=radio]');
+    let status = '';
+    radios.forEach(r => { if (r.checked) status = r.value; });
+
+    siswa.push({ nama: nama, status: status });
+  }
+
+  let data = {
+    kelas: document.getElementById('kelas').value,
+    tanggal: document.getElementById('tanggal').value,
+    siswa: siswa
+  };
+
+  localStorage.setItem('absensi', JSON.stringify(data));
+  alert('Absensi berhasil disimpan');
+}
+
+function hapusData() {
+  if (confirm('Yakin ingin menghapus semua data?')) {
+    localStorage.removeItem('absensi');
+    location.reload();
+  }
+}
+</script>
+
+</body>
+</html>
