@@ -93,6 +93,17 @@
             gap: 10px;
             justify-content: center;
         }
+        .delete-btn {
+            background: #e74c3c;
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .delete-btn:hover {
+            background: #c0392b;
+        }
         .hidden {
             display: none;
         }
@@ -185,6 +196,7 @@
                         <th>Semester 1</th>
                         <th>Semester 2</th>
                         <th>Rata-rata</th>
+                        <th>Aksi</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody">
@@ -248,6 +260,21 @@
                 option.textContent = mapel;
                 mapelSelect.appendChild(option);
             });
+        }
+
+        // Fungsi untuk menambahkan tombol hapus ke baris
+        function addDeleteButton(row) {
+            const deleteCell = row.insertCell(-1);
+            const deleteBtn = document.createElement('button');
+            deleteBtn.textContent = 'Hapus';
+            deleteBtn.className = 'delete-btn';
+            deleteBtn.addEventListener('click', function() {
+                if (confirm('Apakah Anda yakin ingin menghapus data ini?')) {
+                    row.remove();
+                    saveData(); // Simpan ulang data setelah hapus
+                }
+            });
+            deleteCell.appendChild(deleteBtn);
         }
 
         // Tambah Mapel
@@ -355,23 +382,24 @@
             row.insertCell(9).textContent = semester1;
             row.insertCell(10).textContent = semester2;
             row.insertCell(11).textContent = rataRata;
+            addDeleteButton(row); // Tambahkan tombol hapus
 
             dataForm.reset();
         });
 
         // Simpan Data (ke localStorage)
-        saveDataBtn.addEventListener('click', function() {
+        function saveData() {
             const data = [];
             for (let row of tableBody.rows) {
                 const rowData = [];
-                for (let cell of row.cells) {
-                    rowData.push(cell.textContent);
+                for (let i = 0; i < row.cells.length - 1; i++) { // Exclude kolom aksi
+                    rowData.push(row.cells[i].textContent);
                 }
                 data.push(rowData);
             }
             localStorage.setItem('absensiData', JSON.stringify(data));
             alert('Data absensi disimpan!');
-        });
+        }
 
         // Load Data dari localStorage
         function loadData() {
@@ -381,6 +409,7 @@
                 rowData.forEach(cellData => {
                     row.insertCell().textContent = cellData;
                 });
+                addDeleteButton(row); // Tambahkan tombol hapus saat load
             });
         }
 
@@ -389,8 +418,8 @@
             let csv = 'Nama,Kelas,Tanggal,Mapel,Kehadiran,Latihan 1,Latihan 2,Latihan 3,Latihan 4,Semester 1,Semester 2,Rata-rata\n';
             for (let row of tableBody.rows) {
                 const rowData = [];
-                for (let cell of row.cells) {
-                    rowData.push(cell.textContent);
+                for (let i = 0; i < row.cells.length - 1; i++) { // Exclude kolom aksi
+                    rowData.push(row.cells[i].textContent);
                 }
                 csv += rowData.join(',') + '\n';
             }
