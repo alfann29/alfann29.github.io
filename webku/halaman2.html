@@ -22,7 +22,8 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            overflow: hidden;
+            overflow-x: hidden;
+            touch-action: manipulation;
         }
 
         @keyframes gradientAnim {
@@ -41,13 +42,13 @@
             text-align: center;
         }
 
-        h1 { color: var(--primary); font-size: 1.8rem; margin-top: 0; }
+        h1 { color: var(--primary); font-size: 1.8rem; margin: 0 0 10px 0; }
 
         .btn {
             display: block;
             width: 100%;
-            padding: 15px;
-            margin: 12px 0;
+            padding: 16px;
+            margin: 10px 0;
             font-size: 1.2rem;
             font-weight: bold;
             border: none;
@@ -63,24 +64,26 @@
         .btn-green { background: #28C76F; }
         .btn-blue { background: #48DBFB; }
         .btn-purple { background: #9F65D7; }
+        .btn-pink { background: #F368E0; }
 
         .quiz-visual {
-            font-size: 80px;
+            font-size: 90px;
             background: #f8f9fa;
-            border-radius: 20px;
+            border-radius: 30px;
             padding: 20px;
             margin: 15px 0;
-            border: 4px dashed #ddd;
+            border: 5px dashed var(--secondary);
+            display: block;
         }
 
         .options-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10px;
+            gap: 12px;
         }
 
         .hidden { display: none; }
-        #score-num { font-size: 5rem; color: #FF6B6B; font-weight: bold; }
+        #score-num { font-size: 5rem; color: var(--primary); font-weight: bold; display: block; margin: 10px 0; }
     </style>
 </head>
 <body>
@@ -88,11 +91,12 @@
 <div class="container">
     <div id="screen-home">
         <h1>🌟 Game Quiz Fann 🌟</h1>
-        <p>Ayo pilih kuis favoritmu!</p>
+        <p>Pilih kuis yuk:</p>
         <button class="btn btn-orange" onclick="pilihKat('hewan')">🐱 Mengenal Hewan</button>
         <button class="btn btn-green" onclick="pilihKat('buah')">🍎 Menebak Buah</button>
         <button class="btn btn-blue" onclick="pilihKat('hitung')">➕ Berhitung</button>
         <button class="btn btn-purple" onclick="pilihKat('huruf')">🅰️ Tebak Huruf</button>
+        <button class="btn btn-pink" onclick="pilihKat('benda')">🧸 Tebak Benda</button>
     </div>
 
     <div id="screen-amount" class="hidden">
@@ -100,6 +104,7 @@
         <button class="btn btn-blue" onclick="mulai(5)">5 Soal</button>
         <button class="btn btn-green" onclick="mulai(10)">10 Soal</button>
         <button class="btn btn-orange" onclick="mulai(15)">15 Soal</button>
+        <button class="btn btn-pink" onclick="mulai(20)">20 Soal</button>
     </div>
 
     <div id="screen-quiz" class="hidden">
@@ -110,7 +115,7 @@
 
     <div id="screen-result" class="hidden">
         <h1>🎉 Selesai! 🎉</h1>
-        <div id="score-num">0</div>
+        <span id="score-num">0</span>
         <p id="feedback">Hebat sekali!</p>
         <button class="btn btn-blue" onclick="location.reload()">Main Lagi 🔄</button>
     </div>
@@ -125,36 +130,36 @@
 
     const db = {
         hewan: [
-            {q:"Ini hewan apa?", a:"Gajah", ops:["Gajah","Sapi","Singa","Ayam"], img:"🐘"},
-            {q:"Ini hewan apa?", a:"Ayam", ops:["Ayam","Bebek","Ikan","Kucing"], img:"🐔"},
-            {q:"Ini hewan apa?", a:"Singa", ops:["Singa","Harimau","Serigala","Anjing"], img:"🦁"},
-            {q:"Ini hewan apa?", a:"Kelinci", ops:["Kelinci","Tikus","Hamster","Kucing"], img:"🐰"},
-            {q:"Ini hewan apa?", a:"Jerapah", ops:["Jerapah","Unta","Rusa","Kuda"], img:"🦒"},
-            {q:"Ini hewan apa?", a:"Monyet", ops:["Monyet","Beruang","Koala","Tupai"], img:"🐒"},
-            {q:"Ini hewan apa?", a:"Sapi", ops:["Sapi","Kambing","Kerbau","Kuda"], img:"🐄"},
-            {q:"Ini hewan apa?", a:"Bebek", ops:["Bebek","Angsa","Burung","Ayam"], img:"🦆"},
-            {q:"Ini hewan apa?", a:"Ular", ops:["Ular","Cacing","Belut","Kadal"], img:"🐍"},
-            {q:"Ini hewan apa?", a:"Ikan", ops:["Ikan","Kepiting","Udang","Paus"], img:"🐟"},
-            {q:"Ini hewan apa?", a:"Kuda", ops:["Kuda","Zebra","Keledai","Sapi"], img:"🐎"},
-            {q:"Ini hewan apa?", a:"Burung", ops:["Burung","Capung","Lebah","Kupu"], img:"🐦"},
-            {q:"Ini hewan apa?", a:"Kura-kura", ops:["Kura-kura","Siput","Katak","Kadal"], img:"🐢"},
-            {q:"Ini hewan apa?", a:"Harimau", ops:["Harimau","Singa","Kucing","Serigala"], img:"🐯"},
-            {q:"Ini hewan apa?", a:"Lebah", ops:["Lebah","Lalat","Nyamuk","Semut"], img:"🐝"},
-            {q:"Ini hewan apa?", a:"Katak", ops:["Katak","Ikan","Ular","Kura"], img:"🐸"},
-            {q:"Ini hewan apa?", a:"Pinguin", ops:["Pinguin","Burung","Bebek","Anjing Laut"], img:"🐧"},
-            {q:"Ini hewan apa?", a:"Zebra", ops:["Zebra","Kuda","Sapi","Kambing"], img:"🦓"},
-            {q:"Ini hewan apa?", a:"Unta", ops:["Unta","Kuda","Gajah","Jerapah"], img:"🐪"},
-            {q:"Ini hewan apa?", a:"Beruang", ops:["Beruang","Anjing","Singa","Monyet"], img:"🐻"},
-            {q:"Ini hewan apa?", a:"Paus", ops:["Paus","Hiu","Lumba-lumba","Ikan"], img:"🐋"},
-            {q:"Ini hewan apa?", a:"Lumba-lumba", ops:["Lumba-lumba","Paus","Ikan","Anjing Laut"], img:"🐬"},
-            {q:"Ini hewan apa?", a:"Semut", ops:["Semut","Lebah","Laba-laba","Kecoa"], img:"🐜"},
-            {q:"Ini hewan apa?", a:"Kupu-kupu", ops:["Kupu-kupu","Capung","Lebah","Burung"], img:"🦋"},
-            {q:"Ini hewan apa?", a:"Gajah", ops:["Gajah","Badak","Kuda Nil","Unta"], img:"🐘"},
-            {q:"Ini hewan apa?", a:"Babi", ops:["Babi","Sapi","Kambing","Domba"], img:"🐷"},
-            {q:"Ini hewan apa?", a:"Domba", ops:["Domba","Kambing","Sapi","Kuda"], img:"🐑"},
-            {q:"Ini hewan apa?", a:"Tikus", ops:["Tikus","Kelinci","Hamster","Monyet"], img:"🐭"},
-            {q:"Ini hewan apa?", a:"Laba-laba", ops:["Laba-laba","Semut","Kecoa","Lebah"], img:"🕷️"},
-            {q:"Ini hewan apa?", a:"Kucing", ops:["Kucing","Anjing","Kelinci","Harimau"], img:"🐱"}
+            {q:"Hewan apa ini?", a:"Gajah", ops:["Gajah","Sapi","Singa","Ayam"], img:"🐘"},
+            {q:"Hewan apa ini?", a:"Ayam", ops:["Ayam","Bebek","Ikan","Kucing"], img:"🐔"},
+            {q:"Hewan apa ini?", a:"Singa", ops:["Singa","Harimau","Serigala","Anjing"], img:"🦁"},
+            {q:"Hewan apa ini?", a:"Kelinci", ops:["Kelinci","Tikus","Hamster","Kucing"], img:"🐇"},
+            {q:"Hewan apa ini?", a:"Jerapah", ops:["Jerapah","Unta","Rusa","Kuda"], img:"🦒"},
+            {q:"Hewan apa ini?", a:"Monyet", ops:["Monyet","Beruang","Koala","Tupai"], img:"🐒"},
+            {q:"Hewan apa ini?", a:"Sapi", ops:["Sapi","Kambing","Kerbau","Kuda"], img:"🐄"},
+            {q:"Hewan apa ini?", a:"Bebek", ops:["Bebek","Angsa","Burung","Ayam"], img:"🦆"},
+            {q:"Hewan apa ini?", a:"Ular", ops:["Ular","Cacing","Belut","Kadal"], img:"🐍"},
+            {q:"Hewan apa ini?", a:"Ikan", ops:["Ikan","Kepiting","Udang","Paus"], img:"🐟"},
+            {q:"Hewan apa ini?", a:"Kuda", ops:["Kuda","Zebra","Keledai","Sapi"], img:"🐎"},
+            {q:"Hewan apa ini?", a:"Burung", ops:["Burung","Capung","Lebah","Kupu"], img:"🐦"},
+            {q:"Hewan apa ini?", a:"Kura-kura", ops:["Kura-kura","Siput","Katak","Kadal"], img:"🐢"},
+            {q:"Hewan apa ini?", a:"Harimau", ops:["Harimau","Singa","Kucing","Serigala"], img:"🐯"},
+            {q:"Hewan apa ini?", a:"Lebah", ops:["Lebah","Lalat","Nyamuk","Semut"], img:"🐝"},
+            {q:"Hewan apa ini?", a:"Katak", ops:["Katak","Ikan","Ular","Kura"], img:"🐸"},
+            {q:"Hewan apa ini?", a:"Pinguin", ops:["Pinguin","Burung","Bebek","Anjing Laut"], img:"🐧"},
+            {q:"Hewan apa ini?", a:"Zebra", ops:["Zebra","Kuda","Sapi","Kambing"], img:"🦓"},
+            {q:"Hewan apa ini?", a:"Unta", ops:["Unta","Kuda","Gajah","Jerapah"], img:"🐪"},
+            {q:"Hewan apa ini?", a:"Beruang", ops:["Beruang","Anjing","Singa","Monyet"], img:"🐻"},
+            {q:"Hewan apa ini?", a:"Paus", ops:["Paus","Hiu","Lumba-lumba","Ikan"], img:"🐋"},
+            {q:"Hewan apa ini?", a:"Lumba-lumba", ops:["Lumba-lumba","Paus","Ikan","Anjing Laut"], img:"🐬"},
+            {q:"Hewan apa ini?", a:"Semut", ops:["Semut","Lebah","Laba-laba","Kecoa"], img:"🐜"},
+            {q:"Hewan apa ini?", a:"Kupu-kupu", ops:["Kupu-kupu","Capung","Lebah","Burung"], img:"🦋"},
+            {q:"Hewan apa ini?", a:"Badak", ops:["Badak","Gajah","Kuda Nil","Unta"], img:"🦏"},
+            {q:"Hewan apa ini?", a:"Babi", ops:["Babi","Sapi","Kambing","Domba"], img:"🐷"},
+            {q:"Hewan apa ini?", a:"Domba", ops:["Domba","Kambing","Sapi","Kuda"], img:"🐑"},
+            {q:"Hewan apa ini?", a:"Tikus", ops:["Tikus","Kelinci","Hamster","Monyet"], img:"🐭"},
+            {q:"Hewan apa ini?", a:"Laba-laba", ops:["Laba-laba","Semut","Kecoa","Lebah"], img:"🕷️"},
+            {q:"Hewan apa ini?", a:"Kucing", ops:["Kucing","Anjing","Kelinci","Harimau"], img:"🐱"}
         ],
         buah: [
             {q:"Buah apa ini?", a:"Apel", ops:["Apel","Tomat","Ceri","Jeruk"], img:"🍎"},
@@ -226,13 +231,13 @@
             {q:"Mana Huruf C?", a:"C", ops:["C","O","G","Q"], img:"🐱"},
             {q:"Mana Huruf D?", a:"D", ops:["D","B","P","O"], img:"🍩"},
             {q:"Mana Huruf E?", a:"E", ops:["E","F","H","L"], img:"🐘"},
-            {q:"Huruf apa ini?", a:"F", ops:["F","E","L","T"], img:"F"},
+            {q:"Mana Huruf F?", a:"F", ops:["F","E","L","T"], img:"🎏"},
             {q:"Huruf depan Gajah?", a:"G", ops:["G","J","C","K"], img:"🦒"},
             {q:"Huruf depan Harimau?", a:"H", ops:["H","M","N","K"], img:"🐯"},
             {q:"Mana Huruf I?", a:"I", ops:["I","L","J","T"], img:"🍦"},
             {q:"Huruf depan Jeruk?", a:"J", ops:["J","G","I","K"], img:"🍊"},
             {q:"Mana Huruf K?", a:"K", ops:["K","X","Y","H"], img:"🔑"},
-            {q:"Huruf apa ini?", a:"L", ops:["L","I","T","F"], img:"L"},
+            {q:"Mana Huruf L?", a:"L", ops:["L","I","T","F"], img:"🍭"},
             {q:"Huruf depan Monyet?", a:"M", ops:["M","N","W","V"], img:"🐒"},
             {q:"Mana Huruf N?", a:"N", ops:["N","M","H","U"], img:"👃"},
             {q:"Huruf depan Orang?", a:"O", ops:["O","Q","D","C"], img:"🙋"},
@@ -244,13 +249,45 @@
             {q:"Huruf depan Ular?", a:"U", ops:["U","V","W","O"], img:"🐍"},
             {q:"Mana Huruf V?", a:"V", ops:["V","U","W","Y"], img:"🎻"},
             {q:"Huruf depan Wortel?", a:"W", ops:["W","V","M","N"], img:"🥕"},
-            {q:"Huruf apa ini?", a:"X", ops:["X","K","Y","Z"], img:"X"},
+            {q:"Mana Huruf X?", a:"X", ops:["X","K","Y","Z"], img:"🎸"},
             {q:"Mana Huruf Y?", a:"Y", ops:["Y","V","X","I"], img:"🪀"},
             {q:"Huruf depan Zebra?", a:"Z", ops:["Z","S","N","E"], img:"🦓"},
             {q:"Setelah A adalah?", a:"B", ops:["B","C","D","E"], img:"❓"},
             {q:"Sebelum C adalah?", a:"B", ops:["B","A","D","E"], img:"❓"},
             {q:"Huruf depan Ikan?", a:"I", ops:["I","E","A","U"], img:"🐟"},
             {q:"Huruf vokal?", a:"A", ops:["A","B","C","D"], img:"🅰️"}
+        ],
+        benda: [
+            {q:"Benda apa ini?", a:"Buku", ops:["Buku","Pensil","Meja","Tas"], img:"📖"},
+            {q:"Benda apa ini?", a:"Pensil", ops:["Pensil","Penghapus","Buku","Tas"], img:"✏️"},
+            {q:"Benda apa ini?", a:"Tas", ops:["Tas","Buku","Baju","Topi"], img:"🎒"},
+            {q:"Benda apa ini?", a:"Sepatu", ops:["Sepatu","Kaos Kaki","Sandal","Baju"], img:"👟"},
+            {q:"Benda apa ini?", a:"Topi", ops:["Topi","Baju","Celana","Sepatu"], img:"🧢"},
+            {q:"Benda apa ini?", a:"Meja", ops:["Meja","Kursi","Lemari","Tempat Tidur"], img:"🪑"},
+            {q:"Benda apa ini?", a:"Kursi", ops:["Kursi","Meja","Lemari","Pintu"], img:"🛋️"},
+            {q:"Benda apa ini?", a:"Payung", ops:["Payung","Topi","Jas Hujan","Tas"], img:"☂️"},
+            {q:"Benda apa ini?", a:"Jam", ops:["Jam","Cermin","Foto","TV"], img:"⏰"},
+            {q:"Benda apa ini?", a:"Telepon", ops:["Telepon","Radio","TV","Komputer"], img:"☎️"},
+            {q:"Benda apa ini?", a:"Mobil", ops:["Mobil","Motor","Sepeda","Bis"], img:"🚗"},
+            {q:"Benda apa ini?", a:"Sepeda", ops:["Sepeda","Mobil","Motor","Becak"], img:"🚲"},
+            {q:"Benda apa ini?", a:"Pesawat", ops:["Pesawat","Kapal","Mobil","Motor"], img:"✈️"},
+            {q:"Benda apa ini?", a:"Kapal", ops:["Kapal","Pesawat","Mobil","Bis"], img:"🚢"},
+            {q:"Benda apa ini?", a:"Bola", ops:["Bola","Boneka","Robot","Layangan"], img:"⚽"},
+            {q:"Benda apa ini?", a:"Boneka", ops:["Boneka","Bola","Robot","Layangan"], img:"🧸"},
+            {q:"Benda apa ini?", a:"Gunting", ops:["Gunting","Pisau","Sendok","Garpu"], img:"✂️"},
+            {q:"Benda apa ini?", a:"Sikat Gigi", ops:["Sikat Gigi","Sabun","Sampo","Handuk"], img:"🪥"},
+            {q:"Benda apa ini?", a:"Sendok", ops:["Sendok","Garpu","Piring","Gelas"], img:"🥄"},
+            {q:"Benda apa ini?", a:"Gelas", ops:["Gelas","Piring","Sendok","Garpu"], img:"🥛"},
+            {q:"Benda apa ini?", a:"Baju", ops:["Baju","Celana","Topi","Jaket"], img:"👕"},
+            {q:"Benda apa ini?", a:"Celana", ops:["Celana","Baju","Rok","Jas"], img:"👖"},
+            {q:"Benda apa ini?", a:"Kunci", ops:["Kunci","Gembok","Pintu","Pagar"], img:"🔑"},
+            {q:"Benda apa ini?", a:"Lampu", ops:["Lampu","Senter","Lilin","Matahari"], img:"💡"},
+            {q:"Benda apa ini?", a:"Kaca Mata", ops:["Kaca Mata","Topi","Cincin","Kalung"], img:"👓"},
+            {q:"Benda apa ini?", a:"Uang", ops:["Uang","Kertas","Buku","Dompet"], img:"💵"},
+            {q:"Benda apa ini?", a:"Kamera", ops:["Kamera","HP","TV","Radio"], img:"📷"},
+            {q:"Benda apa ini?", a:"Rumah", ops:["Rumah","Gedung","Toko","Kantor"], img:"🏠"},
+            {q:"Benda apa ini?", a:"Pohon", ops:["Pohon","Bunga","Rumput","Hutan"], img:"🌳"},
+            {q:"Benda apa ini?", a:"Sepeda Motor", ops:["Sepeda Motor","Mobil","Sepeda","Bis"], img:"🏍️"}
         ]
     };
 
@@ -261,7 +298,6 @@
 
     function mulai(jml) {
         totalTarget = jml;
-        // Ambil soal acak dari DB
         daftarSoal = [...db[kategoriSekarang]].sort(() => Math.random() - 0.5).slice(0, jml);
         indeksSoal = 0;
         skor = 0;
@@ -277,7 +313,6 @@
         const container = document.getElementById('opt-container');
         container.innerHTML = '';
         
-        // Acak posisi pilihan
         const acakOps = [...data.ops].sort(() => Math.random() - 0.5);
         
         acakOps.forEach(o => {
